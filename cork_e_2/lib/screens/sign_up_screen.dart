@@ -1,50 +1,57 @@
+import 'package:corke/screens/profile_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/corkboard_background.dart';
 import '../utils/theme.dart';
-import 'sign_up_screen.dart';
-import 'profile_home_screen.dart';
+import 'login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _rememberMe = false;
+  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleEmailAuth() async {
+  Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      final user = await authService.signInWithEmailPassword(
+      await authService.signUpWithEmailPassword(
         _emailController.text.trim(),
         _passwordController.text,
       );
 
-      if (user != null && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const ProfileHomeScreen()),
-      );
-}
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfileHomeScreen()),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -56,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _handleGoogleSignIn() async {
+  Future<void> _handleGoogleSignUp() async {
     setState(() => _isLoading = true);
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
@@ -110,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Log In to CorkE',
+                            'Sign Up for CorkE',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -148,8 +155,21 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             obscureText: true,
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Please enter your password';
+                              if (value == null || value.isEmpty) return 'Please enter a password';
                               if (value.length < 6) return 'Password must be at least 6 characters';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            decoration: const InputDecoration(
+                              labelText: 'CONFIRM PASSWORD',
+                              hintText: '••••••••',
+                            ),
+                            obscureText: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) return 'Please confirm your password';
                               return null;
                             },
                           ),
@@ -157,27 +177,27 @@ class _LoginScreenState extends State<LoginScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleEmailAuth,
+                              onPressed: _isLoading ? null : _handleSignUp,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: RetroTheme.blackMarker,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                               ),
                               child: _isLoading
                                   ? const CircularProgressIndicator(color: Colors.white)
-                                  : const Text('PROCEED'),
+                                  : const Text('SIGN UP'),
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Navigation below email login
+                          // Navigation below email sign up button
                           TextButton(
                             onPressed: () {
-                              Navigator.push(
+                              Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                                MaterialPageRoute(builder: (_) => const LoginScreen()),
                               );
                             },
                             child: Text(
-                              "Don't have an account? Sign Up",
+                              'Already have an account? Sign In',
                               style: TextStyle(
                                 color: RetroTheme.blackMarker.withOpacity(0.7),
                                 decoration: TextDecoration.underline,
@@ -185,11 +205,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          // Google sign in
+                          // Google sign up button
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
-                              onPressed: _isLoading ? null : _handleGoogleSignIn,
+                              onPressed: _isLoading ? null : _handleGoogleSignUp,
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -200,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 24,
                               ),
                               label: const Text(
-                                'Sign in with Google',
+                                'Sign up with Google',
                                 style: TextStyle(color: Colors.black87),
                               ),
                             ),

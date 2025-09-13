@@ -5,19 +5,11 @@ import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_home_screen.dart';
 import 'utils/theme.dart';
+import 'config/firebase_config.dart'; // import your config
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID",
-    ),
-  );
+  await FirebaseConfig.initialize(); // use your config file
   runApp(const CorkEApp());
 }
 
@@ -46,7 +38,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-    
+
     return StreamBuilder(
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
@@ -55,11 +47,11 @@ class AuthWrapper extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        
+
         if (snapshot.hasData) {
           return const ProfileHomeScreen();
         }
-        
+
         return const LoginScreen();
       },
     );
