@@ -72,38 +72,42 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: CorkboardBackground(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Container(
-              width: 400,
-              margin: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: RetroTheme.yellowSticky,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(5, 5),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: CorkboardBackground(
+      child: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            width: 400,
+            margin: const EdgeInsets.all(32),
+            child: Stack(
+              clipBehavior: Clip.none, // Allows tape to render outside
+              alignment: Alignment.center,
+              children: [
+                // 1. The resizable background image
+                Image.asset(
+                  'assets/images/sticky_note.png',
+                  fit: BoxFit.fill, // Stretches the image to fill the container
+                  // This is the key! It tells Flutter how to stretch the image.
+                  centerSlice: const Rect.fromLTRB(90, 3, 682, 591), // Adjust these values!
+                ),
+
+                // 2. The tape positioned on top
+                Positioned(
+                  top: -15,
+                  left: 100,
+                  right: 100,
+                  child: Container(
+                    height: 30,
+                    color: RetroTheme.tape.withOpacity(0.7),
                   ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: -10,
-                    left: 100,
-                    right: 100,
-                    child: Container(
-                      height: 30,
-                      color: RetroTheme.tape.withOpacity(0.7),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(32),
+                ),
+
+                // 3. The form content with padding to fit inside the note
+                Padding(
+                  // Increased padding to account for the image's shadow
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 60),
                     child: Form(
                       key: _formKey,
                       child: Column(

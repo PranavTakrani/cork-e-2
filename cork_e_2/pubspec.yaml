@@ -34,6 +34,14 @@ flutter:
     - assets/images/cork_texture.jpg
     - assets/images/torn_paper.png
     - assets/images/google_logo.png
+    - assets/images/sticky_note.png
+    - assets/images/polaroid_frame.png
+    - assets/images/tape_pink.png
+    - assets/images/torn_paper_note.png
+    - assets/images/tape_orange.png
+    - assets/images/friends_banner.png
+    - assets/images/boards_banner.png
+    - assets/images/corke_note.png
     - assets/sounds/
   fonts:
     - family: Kalam
