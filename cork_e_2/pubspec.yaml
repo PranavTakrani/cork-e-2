@@ -31,7 +31,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/
+    - assets/images/cork_texture.jpg
+    - assets/images/torn_paper.png
+    - assets/images/google_logo.png
     - assets/sounds/
   fonts:
     - family: Kalam

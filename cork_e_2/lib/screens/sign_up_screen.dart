@@ -212,16 +212,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               onPressed: _isLoading ? null : _handleGoogleSignUp,
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                                 side: const BorderSide(color: Colors.grey),
+                                minimumSize: const Size(200, 0),
                               ),
-                              icon: Image.network(
-                                'https://www.google.com/favicon.ico',
+                              icon: SizedBox(
+                                width: 24,
                                 height: 24,
+                                child: Image.asset(
+                                  'assets/images/google_logo.png',
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                               label: const Text(
                                 'Sign up with Google',
                                 style: TextStyle(color: Colors.black87),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
