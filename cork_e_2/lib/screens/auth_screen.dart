@@ -101,199 +101,241 @@ class _AuthScreenState extends State<AuthScreen> {
         child: Center(
           child: SingleChildScrollView(
             child: Container(
-              width: 400,
+              width: 500,
+              height: _isSignUpMode ? 820 : 650, // Increased height for sign-up
               margin: const EdgeInsets.all(32),
               child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
                 children: [
-                  // Background sticky note
-                  Image.asset(
-                    'assets/images/sticky_note.png',
-                    fit: BoxFit.fill,
-                    centerSlice: const Rect.fromLTRB(90, 3, 682, 591),
-                  ),
-
-                  // Tape decoration
-                  Positioned(
-                    top: -15,
-                    left: 100,
-                    right: 100,
-                    child: Container(
-                      height: 30,
-                      color: RetroTheme.tape.withOpacity(0.7),
+                  // Sticky note background
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/images/sticky_note.png',
+                      fit: BoxFit.fill,
                     ),
                   ),
 
-                  // Form content
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 60),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Title
-                          Text(
-                            _isSignUpMode ? 'Join CorkE' : 'Log In to CorkE',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: RetroTheme.blackMarker,
-                            ),
-                          ),
-                          Text(
-                            '(Your Digital Scrapbook - Reimagined)',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontStyle: FontStyle.italic,
-                              color: RetroTheme.blackMarker.withOpacity(0.7),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-
-                          // Username field (sign up only)
-                          if (_isSignUpMode) ...[
-                            TextFormField(
-                              controller: _usernameController,
-                              decoration: const InputDecoration(
-                                labelText: 'USERNAME',
-                                hintText: 'johndoe',
-                              ),
-                              validator: (value) {
-                                if (_isSignUpMode && (value == null || value.isEmpty)) {
-                                  return 'Please enter a username';
-                                }
-                                if (_isSignUpMode && value!.length < 3) {
-                                  return 'Username must be at least 3 characters';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
-                          // Email field
-                          TextFormField(
-                            controller: _emailController,
-                            decoration: const InputDecoration(
-                              labelText: 'EMAIL ADDRESS',
-                              hintText: 'johndoe@example.com',
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) return 'Please enter your email';
-                              if (!value.contains('@')) return 'Please enter a valid email';
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Password field
-                          TextFormField(
-                            controller: _passwordController,
-                            decoration: const InputDecoration(
-                              labelText: 'PASSWORD',
-                              hintText: '••••••••',
-                            ),
-                            obscureText: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) return 'Please enter your password';
-                              if (value.length < 6) return 'Password must be at least 6 characters';
-                              return null;
-                            },
-                          ),
-
-                          // Confirm password field (sign up only)
-                          if (_isSignUpMode) ...[
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _confirmPasswordController,
-                              decoration: const InputDecoration(
-                                labelText: 'CONFIRM PASSWORD',
-                                hintText: '••••••••',
-                              ),
-                              obscureText: true,
-                              validator: (value) {
-                                if (_isSignUpMode && (value == null || value.isEmpty)) {
-                                  return 'Please confirm your password';
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
-
-                          const SizedBox(height: 24),
-
-                          // Primary button
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleEmailAuth,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: RetroTheme.blackMarker,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                              ),
-                              child: _isLoading
-                                  ? const CircularProgressIndicator(color: Colors.white)
-                                  : Text(_isSignUpMode ? 'CREATE ACCOUNT' : 'PROCEED'),
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Toggle between sign in / sign up
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _isSignUpMode = !_isSignUpMode;
-                                _formKey.currentState?.reset();
-                                _emailController.clear();
-                                _passwordController.clear();
-                                _confirmPasswordController.clear();
-                                _usernameController.clear();
-                              });
-                            },
-                            child: Text(
-                              _isSignUpMode
-                                  ? 'Already have an account? Log In'
-                                  : "Don't have an account? Sign Up",
+                  // Form content positioned and centered within sticky note
+                  Positioned(
+                    left: 22,
+                    top: 25,
+                    right: 60,
+                    bottom: 60,
+                    child: SingleChildScrollView(
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Title
+                            Text(
+                              _isSignUpMode ? 'Join CorkE' : 'Log In to CorkE',
                               style: TextStyle(
-                                color: RetroTheme.blackMarker.withOpacity(0.7),
-                                decoration: TextDecoration.underline,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: RetroTheme.blackMarker,
                               ),
+                              textAlign: TextAlign.center,
                             ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Google sign in button
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: _isLoading ? null : _handleGoogleSignIn,
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                side: const BorderSide(color: Colors.grey),
-                                minimumSize: const Size(200, 0),
+                            const SizedBox(height: 4),
+                            Text(
+                              '(Your Digital Scrapbook - Reimagined)',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontStyle: FontStyle.italic,
+                                color: RetroTheme.blackMarker.withOpacity(0.7),
                               ),
-                              icon: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Image.asset(
-                                  'assets/images/google_logo.png',
-                                  fit: BoxFit.contain,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 20), // Reduced from 25
+
+                            // Username field (sign up only)
+                            if (_isSignUpMode) ...[
+                              SizedBox(
+                                width: 280,
+                                child: TextFormField(
+                                  controller: _usernameController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'USERNAME',
+                                    hintText: 'johndoe',
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Reduced padding
+                                  ),
+                                  validator: (value) {
+                                    if (_isSignUpMode && (value == null || value.isEmpty)) {
+                                      return 'Please enter a username';
+                                    }
+                                    if (_isSignUpMode && value!.length < 3) {
+                                      return 'Username must be at least 3 characters';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
-                              label: Text(
-                                _isSignUpMode ? 'Sign up with Google' : 'Sign in with Google',
-                                style: const TextStyle(color: Colors.black87),
-                                overflow: TextOverflow.ellipsis,
+                              const SizedBox(height: 8), // Reduced from 12
+                            ],
+
+                            // Email field
+                            SizedBox(
+                              width: 280,
+                              child: TextFormField(
+                                controller: _emailController,
+                                decoration: const InputDecoration(
+                                  labelText: 'EMAIL ADDRESS',
+                                  hintText: 'johndoe@example.com',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Reduced padding
+                                ),
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) return 'Please enter your email';
+                                  if (!value.contains('@')) return 'Please enter a valid email';
+                                  return null;
+                                },
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8), // Reduced from 12
+
+                            // Password field
+                            SizedBox(
+                              width: 280,
+                              child: TextFormField(
+                                controller: _passwordController,
+                                decoration: const InputDecoration(
+                                  labelText: 'PASSWORD',
+                                  hintText: '••••••••',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Reduced padding
+                                ),
+                                obscureText: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) return 'Please enter your password';
+                                  if (value.length < 6) return 'Password must be at least 6 characters';
+                                  return null;
+                                },
+                              ),
+                            ),
+
+                            // Confirm password field (sign up only)
+                            if (_isSignUpMode) ...[
+                              const SizedBox(height: 8), // Reduced from 12
+                              SizedBox(
+                                width: 280,
+                                child: TextFormField(
+                                  controller: _confirmPasswordController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'CONFIRM PASSWORD',
+                                    hintText: '••••••••',
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Reduced padding
+                                  ),
+                                  obscureText: true,
+                                  validator: (value) {
+                                    if (_isSignUpMode && (value == null || value.isEmpty)) {
+                                      return 'Please confirm your password';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+
+                            const SizedBox(height: 14), // Reduced from 18
+
+                            // Primary button
+                            SizedBox(
+                              width: 280,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _handleEmailAuth,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: RetroTheme.blackMarker,
+                                  padding: const EdgeInsets.symmetric(vertical: 12), // Reduced padding
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const CircularProgressIndicator(color: Colors.white)
+                                    : Text(_isSignUpMode ? 'CREATE ACCOUNT' : 'PROCEED'),
+                              ),
+                            ),
+
+                            const SizedBox(height: 8), // Reduced from 12
+
+                            // Toggle between sign in / sign up
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isSignUpMode = !_isSignUpMode;
+                                  _formKey.currentState?.reset();
+                                  _emailController.clear();
+                                  _passwordController.clear();
+                                  _confirmPasswordController.clear();
+                                  _usernameController.clear();
+                                });
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 4), // Reduced padding
+                              ),
+                              child: Text(
+                                _isSignUpMode
+                                    ? 'Already have an account? Log In'
+                                    : "Don't have an account? Sign Up",
+                                style: TextStyle(
+                                  color: RetroTheme.blackMarker.withOpacity(0.7),
+                                  decoration: TextDecoration.underline,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+
+                            const SizedBox(height: 8), // Reduced from 12
+
+                            // OR USE divider
+                            Text(
+                              'OR USE',
+                              style: TextStyle(
+                                color: RetroTheme.blackMarker.withOpacity(0.7),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+
+                            const SizedBox(height: 8), // Reduced from 12
+
+                            // Google sign in button
+                            SizedBox(
+                              width: 280,
+                              child: OutlinedButton.icon(
+                                onPressed: _isLoading ? null : _handleGoogleSignIn,
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16), // Reduced padding
+                                  side: const BorderSide(color: Colors.grey),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                ),
+                                icon: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: Image.asset(
+                                    'assets/images/google_logo.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                                label: Text(
+                                  _isSignUpMode ? 'Sign up with Google' : 'Sign in with Google',
+                                  style: const TextStyle(color: Colors.black87),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
