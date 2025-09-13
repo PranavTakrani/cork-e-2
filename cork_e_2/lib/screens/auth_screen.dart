@@ -19,7 +19,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _usernameController = TextEditingController();
-  
+
   bool _isSignUpMode = false;
   bool _isLoading = false;
 
@@ -47,7 +47,7 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       User? user;
-      
+
       if (_isSignUpMode) {
         user = await authService.signUpWithEmailPassword(
           _emailController.text.trim(),
@@ -133,8 +133,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Title
                           Text(
-                            _isSignUpMode ? 'Join CorkE' : 'Welcome to CorkE',
+                            _isSignUpMode ? 'Join CorkE' : 'Log In to CorkE',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -150,8 +151,8 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          
-                          // Username field (only for sign up)
+
+                          // Username field (sign up only)
                           if (_isSignUpMode) ...[
                             TextFormField(
                               controller: _usernameController,
@@ -171,7 +172,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                             const SizedBox(height: 16),
                           ],
-                          
+
                           // Email field
                           TextFormField(
                             controller: _emailController,
@@ -187,7 +188,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Password field
                           TextFormField(
                             controller: _passwordController,
@@ -202,8 +203,8 @@ class _AuthScreenState extends State<AuthScreen> {
                               return null;
                             },
                           ),
-                          
-                          // Confirm password field (only for sign up)
+
+                          // Confirm password field (sign up only)
                           if (_isSignUpMode) ...[
                             const SizedBox(height: 16),
                             TextFormField(
@@ -221,10 +222,10 @@ class _AuthScreenState extends State<AuthScreen> {
                               },
                             ),
                           ],
-                          
+
                           const SizedBox(height: 24),
-                          
-                          // Main action button
+
+                          // Primary button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -235,13 +236,13 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                               child: _isLoading
                                   ? const CircularProgressIndicator(color: Colors.white)
-                                  : Text(_isSignUpMode ? 'CREATE ACCOUNT' : 'SIGN IN'),
+                                  : Text(_isSignUpMode ? 'CREATE ACCOUNT' : 'PROCEED'),
                             ),
                           ),
-                          
+
                           const SizedBox(height: 16),
-                          
-                          // Toggle between login and signup
+
+                          // Toggle between sign in / sign up
                           TextButton(
                             onPressed: () {
                               setState(() {
@@ -255,7 +256,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             },
                             child: Text(
                               _isSignUpMode
-                                  ? 'Already have an account? Sign In'
+                                  ? 'Already have an account? Log In'
                                   : "Don't have an account? Sign Up",
                               style: TextStyle(
                                 color: RetroTheme.blackMarker.withOpacity(0.7),
@@ -263,9 +264,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(height: 24),
-                          
+
                           // Google sign in button
                           SizedBox(
                             width: double.infinity,

@@ -26,86 +26,75 @@ class PolaroidWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width + 40, // Extra space for rotation button overflow
-      height: height + 40, // Extra space for pin and rotation button
+      width: width,
+      height: height,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Polaroid frame
-          Positioned(
-            top: 20,
-            left: 20,
-            child: Container(
-              width: width,
-              height: height,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(4, 4),
+          // 1. Polaroid frame
+          Container(
+            width: width,
+            height: height,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(4, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Image
+                Container(
+                  width: width - 16,
+                  height: height - 60,
+                  margin: const EdgeInsets.all(8),
+                  color: Colors.black,
+                  child: ColorFiltered(
+                    colorFilter: RetroFilters.getFilter(filterType) ??
+                        const ColorFilter.mode(
+                            Colors.transparent, BlendMode.multiply),
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.broken_image, color: Colors.white, size: 50),
+                    ),
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Image area
-                  Container(
-                    width: width - 16,
-                    height: height - 60,
-                    margin: const EdgeInsets.all(8),
-                    color: Colors.black,
-                    child: ColorFiltered(
-                      colorFilter: RetroFilters.getFilter(filterType) ??
-                          const ColorFilter.mode(
-                              Colors.transparent, BlendMode.multiply),
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) =>
-                            const Center(child: CircularProgressIndicator()),
-                        errorWidget: (context, url, error) => const Icon(
-                          Icons.broken_image,
-                          color: Colors.white,
-                          size: 50,
-                        ),
+                ),
+                // Caption
+                Expanded(
+                  child: Container(
+                    width: width,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Center(
+                      child: Text(
+                        caption ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontFamily: 'Kalam',
+                              fontSize: 14,
+                            ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
-
-                  // Caption area
-                  Expanded(
-                    child: Container(
-                      width: width,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Center(
-                        child: Text(
-                          caption ?? '',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                fontFamily: 'Kalam',
-                                fontSize: 14,
-                              ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
-          // Pin above frame
+          // 2. Red push pin - on top
           if (showPin)
             Positioned(
-              top: 0,
-              left: 20 + (width / 2) - 15, // Center relative to the frame
+              top: -15,
+              left: (width / 2) - 15, // centered horizontally
               child: Container(
                 width: 30,
                 height: 30,
@@ -123,16 +112,16 @@ class PolaroidWidget extends StatelessWidget {
               ),
             ),
 
-          // Rotation button - positioned outside the frame
+          // 3. Rotation button - fully inside bottom-right corner
           if (onRotate != null)
             Positioned(
-              top: 30, // Adjust vertical position
-              right: 0, // Can now overflow outside the frame
+              bottom: 8,
+              right: 8,
               child: GestureDetector(
                 onTap: onRotate,
                 child: Container(
-                  width: 30,
-                  height: 30,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,

@@ -46,7 +46,6 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
 
   Future<void> _updateProfilePicture(String uid) async {
     setState(() => _isUploadingProfilePic = true);
-
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.image,
@@ -55,15 +54,12 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
 
       if (result != null && result.files.isNotEmpty) {
         final fileBytes = result.files.first.bytes;
-        
         if (fileBytes != null) {
           final photoURL = await _storage.uploadImage(fileBytes, uid);
           await _db.updateUserProfile(uid, photoURL: photoURL);
-          
-          // Update Firebase Auth profile
           final authService = Provider.of<AuthService>(context, listen: false);
           await authService.currentUser?.updatePhotoURL(photoURL);
-          
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Profile picture updated!')),
@@ -85,15 +81,13 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
   Future<void> _createNewBoard(BuildContext context, String userId) async {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
-    
+
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: RetroTheme.yellowSticky,
-        title: Text(
-          'Create New Board',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
+        title: Text('Create New Board',
+            style: Theme.of(context).textTheme.headlineMedium),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -120,9 +114,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               if (titleController.text.isNotEmpty) {
@@ -130,9 +123,11 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                   final boardId = await _db.createBoard(
                     titleController.text,
                     userId,
-                    description: descriptionController.text.isNotEmpty ? descriptionController.text : null,
+                    description: descriptionController.text.isNotEmpty
+                        ? descriptionController.text
+                        : null,
                   );
-                  
+
                   if (mounted) {
                     Navigator.pop(context);
                     Navigator.push(
@@ -180,7 +175,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete Board', style: TextStyle(color: Colors.red)),
+              title: const Text('Delete Board',
+                  style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
                 _deleteBoard(context, board);
@@ -194,7 +190,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
 
   Future<void> _renameBoard(BuildContext context, BoardModel board) async {
     final titleController = TextEditingController(text: board.title);
-    
+
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -211,14 +207,14 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               if (titleController.text.isNotEmpty) {
                 try {
-                  await _db.updateBoard(board.id, {'title': titleController.text});
+                  await _db
+                      .updateBoard(board.id, {'title': titleController.text});
                   if (mounted) Navigator.pop(context);
                 } catch (e) {
                   if (mounted) {
@@ -242,12 +238,12 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: RetroTheme.yellowSticky,
         title: const Text('Delete Board?'),
-        content: Text('Are you sure you want to delete "${board.title}"? This cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete "${board.title}"? This cannot be undone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context, true),
@@ -256,7 +252,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
         ],
       ),
     );
-    
+
     if (confirmed == true) {
       try {
         await _db.deleteBoard(board.id);
@@ -289,7 +285,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               pinned: true,
-              expandedHeight: 400,
+              expandedHeight: 450,
               flexibleSpace: FlexibleSpaceBar(
                 background: Stack(
                   children: [
@@ -307,139 +303,194 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       ),
                     ),
 
-                    // Profile Polaroid Frame
+                    // Polaroid Profile Picture
                     Positioned(
                       top: 90,
                       left: 30,
                       child: Transform.rotate(
-                        angle: -0.05,
-                        child: Container(
-                          width: 250,
-                          height: 300,
-                          child: Stack(
-                            children: [
-                              Image.asset(
-                                'assets/images/polaroid_frame.png',
-                                fit: BoxFit.fill,
-                              ),
-                              Positioned(
-                                top: 25,
-                                left: 25,
-                                right: 25,
-                                height: 190,
-                                child: GestureDetector(
-                                  onTap: () => _updateProfilePicture(currentUser.uid),
-                                  child: Container(
-                                    color: Colors.black,
-                                    child: Stack(
-                                      children: [
-                                        StreamBuilder<UserModel?>(
-                                          stream: _db.getUserStream(currentUser.uid),
+                        angle: -0.03,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            GestureDetector(
+                              onTap: () =>
+                                  _updateProfilePicture(currentUser.uid),
+                              child: Container(
+                                width: 250,
+                                height: 320,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(4, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    // Profile Image
+                                    Container(
+                                      margin: const EdgeInsets.all(10),
+                                      width: double.infinity,
+                                      height: 230,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: Stack(
+                                          children: [
+                                            StreamBuilder<UserModel?>(
+                                              stream: _db.getUserStream(
+                                                  currentUser.uid),
+                                              builder: (context, snapshot) {
+                                                final user = snapshot.data;
+                                                final photoURL =
+                                                    user?.photoURL ??
+                                                        currentUser.photoURL;
+                                                return photoURL != null
+                                                    ? Image.network(
+                                                        photoURL,
+                                                        width: double.infinity,
+                                                        height: double.infinity,
+                                                        fit: BoxFit.cover,
+                                                      )
+                                                    : const Icon(Icons.person,
+                                                        size: 70,
+                                                        color: Colors.white);
+                                              },
+                                            ),
+                                            if (_isUploadingProfilePic)
+                                              Container(
+                                                color: Colors.black54,
+                                                child: const Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          color: Colors.white),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Display Name
+                                    SizedBox(
+                                      height: 50,
+                                      child: Center(
+                                        child: StreamBuilder<UserModel?>(
+                                          stream: _db
+                                              .getUserStream(currentUser.uid),
                                           builder: (context, snapshot) {
                                             final user = snapshot.data;
-                                            final photoURL = user?.photoURL ?? currentUser.photoURL;
-                                            
-                                            return photoURL != null
-                                                ? CachedNetworkImage(
-                                                    imageUrl: photoURL,
-                                                    fit: BoxFit.cover,
-                                                    width: double.infinity,
-                                                    height: double.infinity,
-                                                    placeholder: (context, url) =>
-                                                        const Center(child: CircularProgressIndicator()),
-                                                    errorWidget: (context, url, error) =>
-                                                        const Icon(Icons.person, size: 70, color: Colors.white),
+                                            final displayName =
+                                                user?.displayName ??
+                                                    currentUser.displayName ??
+                                                    'Username';
+                                            if (_displayNameController
+                                                    .text.isEmpty &&
+                                                user?.displayName != null) {
+                                              _displayNameController.text =
+                                                  user!.displayName!;
+                                            }
+
+                                            return _isEditingName
+                                                ? SizedBox(
+                                                    width: 200,
+                                                    child: TextField(
+                                                      controller:
+                                                          _displayNameController,
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .headlineSmall
+                                                          ?.copyWith(
+                                                            fontFamily:
+                                                                'Handwritten',
+                                                          ),
+                                                      decoration:
+                                                          const InputDecoration(
+                                                              border:
+                                                                  InputBorder
+                                                                      .none),
+                                                      onSubmitted: (_) =>
+                                                          _saveDisplayName(
+                                                              currentUser.uid),
+                                                      autofocus: true,
+                                                    ),
                                                   )
-                                                : const Icon(Icons.person, size: 70, color: Colors.white);
+                                                : Text(
+                                                    displayName,
+                                                    textAlign: TextAlign.center,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                          fontFamily:
+                                                              'Handwritten',
+                                                        ),
+                                                  );
                                           },
                                         ),
-                                        if (_isUploadingProfilePic)
-                                          Container(
-                                            color: Colors.black54,
-                                            child: const Center(
-                                              child: CircularProgressIndicator(color: Colors.white),
-                                            ),
-                                          ),
-                                        Positioned(
-                                          bottom: 8,
-                                          right: 8,
-                                          child: Container(
-                                            decoration: const BoxDecoration(
-                                              color: Colors.white,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            padding: const EdgeInsets.all(4),
-                                            child: const Icon(
-                                              Icons.camera_alt,
-                                              size: 16,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ),
-                              Positioned(
-                                bottom: 25,
-                                left: 0,
-                                right: 0,
-                                child: StreamBuilder<UserModel?>(
-                                  stream: _db.getUserStream(currentUser.uid),
-                                  builder: (context, snapshot) {
-                                    final user = snapshot.data;
-                                    final displayName = user?.displayName ?? currentUser.displayName ?? currentUser.email ?? 'Username';
-                                    
-                                    if (_displayNameController.text.isEmpty && user?.displayName != null) {
-                                      _displayNameController.text = user!.displayName!;
-                                    }
+                            ),
 
-                                    return GestureDetector(
-                                      onTap: () => setState(() => _isEditingName = true),
-                                      child: _isEditingName
-                                          ? Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                                              child: TextField(
-                                                controller: _displayNameController,
-                                                textAlign: TextAlign.center,
-                                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                                  fontFamily: 'Handwritten',
-                                                ),
-                                                decoration: const InputDecoration(
-                                                  border: InputBorder.none,
-                                                ),
-                                                onSubmitted: (_) => _saveDisplayName(currentUser.uid),
-                                                autofocus: true,
-                                              ),
-                                            )
-                                          : Text(
-                                              displayName,
-                                              textAlign: TextAlign.center,
-                                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                                fontFamily: 'Handwritten',
-                                              ),
-                                            ),
-                                    );
-                                  },
+                            // Camera button
+                            Positioned(
+                              top: 5,
+                              right: 5,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.3),
+                                      blurRadius: 2,
+                                      offset: const Offset(1, 1),
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(6),
+                                child: const Icon(Icons.camera_alt,
+                                    size: 20, color: Colors.black),
+                              ),
+                            ),
+
+                            // Top-left tape
+                            Positioned(
+                              top: -10,
+                              left: 20,
+                              child: Transform.rotate(
+                                angle: 0.08,
+                                child: Image.asset(
+                                  'assets/images/tape_pink.png',
+                                  width: 50,
+                                  height: 20,
+                                  fit: BoxFit.fill,
                                 ),
                               ),
-                              // Pink tape
-                              Positioned(
-                                top: 5,
-                                right: 50,
-                                child: Transform.rotate(
-                                  angle: 0.1,
-                                  child: Image.asset(
-                                    'assets/images/tape_pink.png',
-                                    width: 50,
-                                    height: 20,
-                                    fit: BoxFit.fill,
-                                  ),
+                            ),
+
+                            // Top-right tape
+                            Positioned(
+                              top: -10,
+                              right: 20,
+                              child: Transform.rotate(
+                                angle: -0.08,
+                                child: Image.asset(
+                                  'assets/images/tape_orange.png',
+                                  width: 50,
+                                  height: 20,
+                                  fit: BoxFit.fill,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -455,42 +506,54 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           height: 350,
                           child: Stack(
                             children: [
-                              Image.asset(
-                                'assets/images/torn_paper_note.png',
-                                fit: BoxFit.fill,
-                              ),
+                              Image.asset('assets/images/torn_paper_note.png',
+                                  fit: BoxFit.fill),
                               Positioned.fill(
                                 child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(40, 60, 40, 40),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(40, 60, 40, 40),
                                   child: StreamBuilder<UserModel?>(
                                     stream: _db.getUserStream(currentUser.uid),
                                     builder: (context, snapshot) {
                                       final user = snapshot.data;
-
-                                      if (_bioController.text.isEmpty && user?.bio != null) {
+                                      if (_bioController.text.isEmpty &&
+                                          user?.bio != null) {
                                         _bioController.text = user!.bio!;
                                       }
 
                                       return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                user?.displayName ?? currentUser.displayName ?? 'User',
-                                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                                  fontFamily: 'Handwritten',
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                                user?.displayName ??
+                                                    currentUser.displayName ??
+                                                    'User',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleLarge
+                                                    ?.copyWith(
+                                                      fontFamily: 'Handwritten',
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                               ),
                                               IconButton(
-                                                icon: Icon(_isEditingBio ? Icons.save : Icons.edit, size: 20),
+                                                icon: Icon(
+                                                    _isEditingBio
+                                                        ? Icons.save
+                                                        : Icons.edit,
+                                                    size: 20),
                                                 onPressed: () {
                                                   if (_isEditingBio) {
                                                     _saveBio(currentUser.uid);
                                                   } else {
-                                                    setState(() => _isEditingBio = true);
+                                                    setState(() =>
+                                                        _isEditingBio = true);
                                                   }
                                                 },
                                               ),
@@ -504,22 +567,34 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                                     maxLines: null,
                                                     expands: true,
                                                     maxLength: 250,
-                                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                                      fontFamily: 'Handwritten',
-                                                    ),
-                                                    decoration: const InputDecoration(
-                                                      hintText: 'Biography here: Limited to 250 char',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge
+                                                        ?.copyWith(
+                                                          fontFamily:
+                                                              'Handwritten',
+                                                        ),
+                                                    decoration:
+                                                        const InputDecoration(
+                                                      hintText:
+                                                          'Biography here: Limited to 250 char',
                                                       border: InputBorder.none,
-                                                      contentPadding: EdgeInsets.zero,
+                                                      contentPadding:
+                                                          EdgeInsets.zero,
                                                     ),
                                                   ),
                                                 )
                                               : Expanded(
                                                   child: Text(
-                                                    user?.bio ?? 'Biography here: Limited to 250 char',
-                                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                                      fontFamily: 'Handwritten',
-                                                    ),
+                                                    user?.bio ??
+                                                        'Biography here: Limited to 250 char',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge
+                                                        ?.copyWith(
+                                                          fontFamily:
+                                                              'Handwritten',
+                                                        ),
                                                   ),
                                                 ),
                                         ],
@@ -579,17 +654,16 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.black, size: 30),
-                  onPressed: () async {
-                    await authService.signOut();
-                  },
+                  onPressed: () async => await authService.signOut(),
                 ),
               ],
             ),
-            
+
             // Boards Section
             SliverToBoxAdapter(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 child: Row(
                   children: [
                     Transform.rotate(
@@ -603,7 +677,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                     ),
                     const Spacer(),
                     ElevatedButton.icon(
-                      onPressed: () => _createNewBoard(context, currentUser.uid),
+                      onPressed: () =>
+                          _createNewBoard(context, currentUser.uid),
                       icon: const Icon(Icons.add, color: Colors.white),
                       label: const Text('New Board'),
                       style: ElevatedButton.styleFrom(
@@ -615,8 +690,6 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 ),
               ),
             ),
-            
-            // Boards Grid
             StreamBuilder<List<BoardModel>>(
               stream: _db.getUserBoards(currentUser.uid),
               builder: (context, snapshot) {
@@ -625,61 +698,29 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
-                
                 if (snapshot.hasError) {
                   return SliverFillRemaining(
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error, size: 48, color: Colors.red),
-                          const SizedBox(height: 16),
-                          Text('Error loading boards: ${snapshot.error}'),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => setState(() {}),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
+                        child: Text('Error loading boards: ${snapshot.error}')),
                   );
                 }
-                
                 final boards = snapshot.data ?? [];
-                
                 if (boards.isEmpty) {
                   return SliverFillRemaining(
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.dashboard, size: 64, color: Colors.grey),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'No boards yet',
-                            style: TextStyle(fontSize: 18, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => _createNewBoard(context, currentUser.uid),
-                            icon: const Icon(Icons.add),
-                            label: const Text('Create Your First Board'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: RetroTheme.blackMarker,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ],
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            _createNewBoard(context, currentUser.uid),
+                        child: const Text('Create Your First Board'),
                       ),
                     ),
                   );
                 }
-                
                 return SliverPadding(
                   padding: const EdgeInsets.all(32),
                   sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 4,
                       childAspectRatio: 0.8,
                       crossAxisSpacing: 24,
@@ -696,11 +737,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 );
               },
             ),
-            
-            // Add some bottom padding
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
       ),
@@ -714,9 +751,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => IndividualBoardScreen(
-              boardId: board.id,
-              boardTitle: board.title,
-            ),
+                boardId: board.id, boardTitle: board.title),
           ),
         );
       },
@@ -726,15 +761,13 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(4, 4),
-            ),
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(4, 4)),
           ],
         ),
         child: Stack(
           children: [
-            // Pin decoration
             Positioned(
               top: -5,
               left: 0,
@@ -748,16 +781,14 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 2,
-                        offset: const Offset(1, 1),
-                      ),
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 2,
+                          offset: const Offset(1, 1))
                     ],
                   ),
                 ),
               ),
             ),
-            
             Column(
               children: [
                 Expanded(
@@ -768,24 +799,25 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                         ? CachedNetworkImage(
                             imageUrl: board.coverPhotoUrl!,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                const Center(child: CircularProgressIndicator()),
-                            errorWidget: (context, url, error) =>
-                                Center(
-                                  child: Text(
-                                    'cover photo',
-                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
+                            placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator()),
+                            errorWidget: (context, url, error) => Center(
+                              child: Text(
+                                'cover photo',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(color: Colors.white),
+                              ),
+                            ),
                           )
                         : Center(
                             child: Text(
                               'cover photo',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Colors.white,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(color: Colors.white),
                             ),
                           ),
                   ),
@@ -794,9 +826,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                   padding: const EdgeInsets.all(8),
                   child: Text(
                     board.title,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
+                    style: Theme.of(context).textTheme.titleMedium,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
