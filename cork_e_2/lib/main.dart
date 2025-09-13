@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
-import 'screens/login_screen.dart';
+import 'screens/auth_screen.dart'; // Updated import
 import 'screens/profile_home_screen.dart';
 import 'utils/theme.dart';
-import 'config/firebase_config.dart'; // import your config
+import 'config/firebase_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await FirebaseConfig.initialize(); // use your config file
+  await FirebaseConfig.initialize();
   runApp(const CorkEApp());
 }
 
@@ -52,7 +52,7 @@ class AuthWrapper extends StatelessWidget {
           return const ProfileHomeScreen();
         }
 
-        return const LoginScreen();
+        return const AuthScreen(); // Updated to use unified auth screen
       },
     );
   }

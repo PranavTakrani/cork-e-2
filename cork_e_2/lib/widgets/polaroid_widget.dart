@@ -26,15 +26,15 @@ class PolaroidWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width,
-      height: height + 20, // give space for pin
+      width: width + 40, // Extra space for rotation button overflow
+      height: height + 40, // Extra space for pin and rotation button
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           // Polaroid frame
           Positioned(
             top: 20,
-            left: 0,
+            left: 20,
             child: Container(
               width: width,
               height: height,
@@ -105,7 +105,7 @@ class PolaroidWidget extends StatelessWidget {
           if (showPin)
             Positioned(
               top: 0,
-              left: width / 2 - 15,
+              left: 20 + (width / 2) - 15, // Center relative to the frame
               child: Container(
                 width: 30,
                 height: 30,
@@ -123,11 +123,11 @@ class PolaroidWidget extends StatelessWidget {
               ),
             ),
 
-          // Rotation button - now at the same Stack level as the frame
+          // Rotation button - positioned outside the frame
           if (onRotate != null)
             Positioned(
-              top: 25, // 20 (frame top) + 5 (offset from frame top)
-              left: width - 15, // 15px overlap from right edge
+              top: 30, // Adjust vertical position
+              right: 0, // Can now overflow outside the frame
               child: GestureDetector(
                 onTap: onRotate,
                 child: Container(

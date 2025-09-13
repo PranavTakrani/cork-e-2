@@ -1,23 +1,26 @@
-import 'package:corke/screens/profile_home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/corkboard_background.dart';
 import '../utils/theme.dart';
-import 'login_screen.dart';
+import 'profile_home_screen.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class AuthScreen extends StatefulWidget {
+  const AuthScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _usernameController = TextEditingController();
+  
+  bool _isSignUpMode = false;
   bool _isLoading = false;
 
   @override
@@ -25,12 +28,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _usernameController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSignUp() async {
+  Future<void> _handleEmailAuth() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_passwordController.text != _confirmPasswordController.text) {
+
+    if (_isSignUpMode && _passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Passwords do not match")),
       );
@@ -41,12 +46,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      await authService.signUpWithEmailPassword(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+      User? user;
+      
+      if (_isSignUpMode) {
+        user = await authService.signUpWithEmailPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+          _usernameController.text.trim(),
+        );
+      } else {
+        user = await authService.signInWithEmailPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+      }
 
-      if (mounted) {
+      if (user != null && mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const ProfileHomeScreen()),
@@ -63,7 +78,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  Future<void> _handleGoogleSignUp() async {
+  Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
@@ -88,20 +103,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Container(
               width: 400,
               margin: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: RetroTheme.yellowSticky,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(5, 5),
-                  ),
-                ],
-              ),
               child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
                 children: [
+                  // Background sticky note
+                  Image.asset(
+                    'assets/images/sticky_note.png',
+                    fit: BoxFit.fill,
+                    centerSlice: const Rect.fromLTRB(90, 3, 682, 591),
+                  ),
+
+                  // Tape decoration
                   Positioned(
-                    top: -10,
+                    top: -15,
                     left: 100,
                     right: 100,
                     child: Container(
@@ -109,15 +124,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       color: RetroTheme.tape.withOpacity(0.7),
                     ),
                   ),
+
+                  // Form content
                   Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 60),
                     child: Form(
                       key: _formKey,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Sign Up for CorkE',
+                            _isSignUpMode ? 'Join CorkE' : 'Welcome to CorkE',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -133,6 +150,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           const SizedBox(height: 32),
+                          
+                          // Username field (only for sign up)
+                          if (_isSignUpMode) ...[
+                            TextFormField(
+                              controller: _usernameController,
+                              decoration: const InputDecoration(
+                                labelText: 'USERNAME',
+                                hintText: 'johndoe',
+                              ),
+                              validator: (value) {
+                                if (_isSignUpMode && (value == null || value.isEmpty)) {
+                                  return 'Please enter a username';
+                                }
+                                if (_isSignUpMode && value!.length < 3) {
+                                  return 'Username must be at least 3 characters';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          
+                          // Email field
                           TextFormField(
                             controller: _emailController,
                             decoration: const InputDecoration(
@@ -147,6 +187,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
+                          
+                          // Password field
                           TextFormField(
                             controller: _passwordController,
                             decoration: const InputDecoration(
@@ -155,61 +197,80 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                             obscureText: true,
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Please enter a password';
+                              if (value == null || value.isEmpty) return 'Please enter your password';
                               if (value.length < 6) return 'Password must be at least 6 characters';
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _confirmPasswordController,
-                            decoration: const InputDecoration(
-                              labelText: 'CONFIRM PASSWORD',
-                              hintText: '••••••••',
+                          
+                          // Confirm password field (only for sign up)
+                          if (_isSignUpMode) ...[
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _confirmPasswordController,
+                              decoration: const InputDecoration(
+                                labelText: 'CONFIRM PASSWORD',
+                                hintText: '••••••••',
+                              ),
+                              obscureText: true,
+                              validator: (value) {
+                                if (_isSignUpMode && (value == null || value.isEmpty)) {
+                                  return 'Please confirm your password';
+                                }
+                                return null;
+                              },
                             ),
-                            obscureText: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) return 'Please confirm your password';
-                              return null;
-                            },
-                          ),
+                          ],
+                          
                           const SizedBox(height: 24),
+                          
+                          // Main action button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleSignUp,
+                              onPressed: _isLoading ? null : _handleEmailAuth,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: RetroTheme.blackMarker,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                               ),
                               child: _isLoading
                                   ? const CircularProgressIndicator(color: Colors.white)
-                                  : const Text('SIGN UP'),
+                                  : Text(_isSignUpMode ? 'CREATE ACCOUNT' : 'SIGN IN'),
                             ),
                           ),
+                          
                           const SizedBox(height: 16),
-                          // Navigation below email sign up button
+                          
+                          // Toggle between login and signup
                           TextButton(
                             onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                              );
+                              setState(() {
+                                _isSignUpMode = !_isSignUpMode;
+                                _formKey.currentState?.reset();
+                                _emailController.clear();
+                                _passwordController.clear();
+                                _confirmPasswordController.clear();
+                                _usernameController.clear();
+                              });
                             },
                             child: Text(
-                              'Already have an account? Sign In',
+                              _isSignUpMode
+                                  ? 'Already have an account? Sign In'
+                                  : "Don't have an account? Sign Up",
                               style: TextStyle(
                                 color: RetroTheme.blackMarker.withOpacity(0.7),
                                 decoration: TextDecoration.underline,
                               ),
                             ),
                           ),
+                          
                           const SizedBox(height: 24),
-                          // Google sign up button
+                          
+                          // Google sign in button
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
-                              onPressed: _isLoading ? null : _handleGoogleSignUp,
+                              onPressed: _isLoading ? null : _handleGoogleSignIn,
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -224,9 +285,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   fit: BoxFit.contain,
                                 ),
                               ),
-                              label: const Text(
-                                'Sign up with Google',
-                                style: TextStyle(color: Colors.black87),
+                              label: Text(
+                                _isSignUpMode ? 'Sign up with Google' : 'Sign in with Google',
+                                style: const TextStyle(color: Colors.black87),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),

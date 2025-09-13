@@ -49,33 +49,33 @@ class DefaultFirebaseOptions {
     projectId: "corke-hackcmu",
     storageBucket: "corke-hackcmu.firebasestorage.app",
     messagingSenderId: "892651524942",
-    appId: "1:892651524942:web:5ddca9eb443b01f5cb041f",
+    appId: "1:892651524942:web:5ddca9eb443b01f5cb041f5cb041f",
     measurementId: "G-JVHSX9JM3M"
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+    apiKey: 'AIzaSyD7Z8kV9cO4aHRjnQnZPjpCi7gW1bQSvUg',
+    appId: '1:892651524942:android:YOUR_ANDROID_APP_ID',
+    messagingSenderId: '892651524942',
+    projectId: 'corke-hackcmu',
+    storageBucket: 'corke-hackcmu.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    iosBundleId: 'com.example.polaroidBoard',
+    apiKey: 'AIzaSyD7Z8kV9cO4aHRjnQnZPjpCi7gW1bQSvUg',
+    appId: '1:892651524942:ios:YOUR_IOS_APP_ID',
+    messagingSenderId: '892651524942',
+    projectId: 'corke-hackcmu',
+    storageBucket: 'corke-hackcmu.firebasestorage.app',
+    iosBundleId: 'com.example.corke',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'YOUR_MACOS_API_KEY',
-    appId: 'YOUR_MACOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    iosBundleId: 'com.example.polaroidBoard',
+    apiKey: 'AIzaSyD7Z8kV9cO4aHRjnQnZPjpCi7gW1bQSvUg',
+    appId: '1:892651524942:macos:YOUR_MACOS_APP_ID',
+    messagingSenderId: '892651524942',
+    projectId: 'corke-hackcmu',
+    storageBucket: 'corke-hackcmu.firebasestorage.app',
+    iosBundleId: 'com.example.corke',
   );
 }

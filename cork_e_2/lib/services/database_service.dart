@@ -8,13 +8,26 @@ class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // User operations
-  Future<void> createOrUpdateUser(User user) async {
-    await _db.collection('users').doc(user.uid).set({
+  Future<void> createOrUpdateUser(User user, {String? customDisplayName}) async {
+    final userData = {
       'email': user.email,
-      'displayName': user.displayName,
+      'displayName': customDisplayName ?? user.displayName ?? user.email?.split('@')[0] ?? 'User',
       'photoURL': user.photoURL,
       'lastLogin': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
+    
+    await _db.collection('users').doc(user.uid).set(userData, SetOptions(merge: true));
+  }
+
+  Future<void> updateUserProfile(String uid, {String? displayName, String? photoURL, String? bio}) async {
+    final updates = <String, dynamic>{};
+    if (displayName != null) updates['displayName'] = displayName;
+    if (photoURL != null) updates['photoURL'] = photoURL;
+    if (bio != null) updates['bio'] = bio;
+    
+    if (updates.isNotEmpty) {
+      await _db.collection('users').doc(uid).update(updates);
+    }
   }
 
   Future<void> updateUserBio(String uid, String bio) async {
@@ -29,13 +42,20 @@ class DatabaseService {
   }
 
   // Board operations
-  Future<String> createBoard(String title, String ownerId) async {
-    final docRef = await _db.collection('boards').add({
-      'title': title,
-      'ownerId': ownerId,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-    return docRef.id;
+  Future<String> createBoard(String title, String ownerId, {String? description}) async {
+    try {
+      final docRef = await _db.collection('boards').add({
+        'title': title,
+        'description': description,
+        'ownerId': ownerId,
+        'createdAt': FieldValue.serverTimestamp(),
+        'coverPhotoUrl': null, // Will be set later when first photo is added
+      });
+      return docRef.id;
+    } catch (e) {
+      print('Error creating board: $e');
+      rethrow;
+    }
   }
 
   Stream<List<BoardModel>> getUserBoards(String uid) {
@@ -46,37 +66,73 @@ class DatabaseService {
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => BoardModel.fromMap(doc.data(), doc.id))
-            .toList());
+            .toList())
+        .handleError((error) {
+          print('Error fetching user boards: $error');
+          return <BoardModel>[];
+        });
   }
 
   Future<void> updateBoard(String boardId, Map<String, dynamic> data) async {
-    await _db.collection('boards').doc(boardId).update(data);
+    try {
+      await _db.collection('boards').doc(boardId).update(data);
+    } catch (e) {
+      print('Error updating board: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateBoardCoverPhoto(String boardId, String coverPhotoUrl) async {
+    try {
+      await _db.collection('boards').doc(boardId).update({
+        'coverPhotoUrl': coverPhotoUrl,
+      });
+    } catch (e) {
+      print('Error updating board cover photo: $e');
+    }
   }
 
   Future<void> deleteBoard(String boardId) async {
-    // Delete all polaroids first
-    final polaroids = await _db
-        .collection('boards')
-        .doc(boardId)
-        .collection('polaroids')
-        .get();
-    
-    for (var doc in polaroids.docs) {
-      await doc.reference.delete();
+    try {
+      // Delete all polaroids first
+      final polaroids = await _db
+          .collection('boards')
+          .doc(boardId)
+          .collection('polaroids')
+          .get();
+      
+      for (var doc in polaroids.docs) {
+        await doc.reference.delete();
+      }
+      
+      // Delete the board
+      await _db.collection('boards').doc(boardId).delete();
+    } catch (e) {
+      print('Error deleting board: $e');
+      rethrow;
     }
-    
-    // Delete the board
-    await _db.collection('boards').doc(boardId).delete();
   }
 
   // Polaroid operations
   Future<String> addPolaroid(String boardId, PolaroidModel polaroid) async {
-    final docRef = await _db
-        .collection('boards')
-        .doc(boardId)
-        .collection('polaroids')
-        .add(polaroid.toMap());
-    return docRef.id;
+    try {
+      final docRef = await _db
+          .collection('boards')
+          .doc(boardId)
+          .collection('polaroids')
+          .add(polaroid.toMap());
+      
+      // Update board cover photo if it's the first polaroid
+      final boardDoc = await _db.collection('boards').doc(boardId).get();
+      if (boardDoc.exists && boardDoc.data()?['coverPhotoUrl'] == null) {
+        await updateBoardCoverPhoto(boardId, polaroid.imageUrl);
+      }
+      
+      return docRef.id;
+    } catch (e) {
+      print('Error adding polaroid: $e');
+      rethrow;
+    }
   }
 
   Stream<List<PolaroidModel>> getBoardPolaroids(String boardId) {
@@ -88,25 +144,39 @@ class DatabaseService {
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => PolaroidModel.fromMap(doc.data(), doc.id))
-            .toList());
+            .toList())
+        .handleError((error) {
+          print('Error fetching board polaroids: $error');
+          return <PolaroidModel>[];
+        });
   }
 
   Future<void> updatePolaroid(
       String boardId, String polaroidId, Map<String, dynamic> data) async {
-    await _db
-        .collection('boards')
-        .doc(boardId)
-        .collection('polaroids')
-        .doc(polaroidId)
-        .update(data);
+    try {
+      await _db
+          .collection('boards')
+          .doc(boardId)
+          .collection('polaroids')
+          .doc(polaroidId)
+          .update(data);
+    } catch (e) {
+      print('Error updating polaroid: $e');
+      rethrow;
+    }
   }
 
   Future<void> deletePolaroid(String boardId, String polaroidId) async {
-    await _db
-        .collection('boards')
-        .doc(boardId)
-        .collection('polaroids')
-        .doc(polaroidId)
-        .delete();
+    try {
+      await _db
+          .collection('boards')
+          .doc(boardId)
+          .collection('polaroids')
+          .doc(polaroidId)
+          .delete();
+    } catch (e) {
+      print('Error deleting polaroid: $e');
+      rethrow;
+    }
   }
 }

@@ -28,7 +28,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  Future<User?> signUpWithEmailPassword(String email, String password) async {
+  Future<User?> signUpWithEmailPassword(String email, String password, String username) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -36,7 +36,12 @@ class AuthService extends ChangeNotifier {
       );
       
       if (credential.user != null) {
-        await _db.createOrUpdateUser(credential.user!);
+        // Update the display name first
+        await credential.user!.updateDisplayName(username);
+        await credential.user!.reload();
+        
+        // Then create user document with the username
+        await _db.createOrUpdateUser(credential.user!, customDisplayName: username);
       }
       
       return credential.user;
